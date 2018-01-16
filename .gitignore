@@ -1,0 +1,17 @@
+/Temp/
+/Library/
+/obj/
+
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+.vscode
+Assets/VSCode
+VSCode.meta
