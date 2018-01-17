@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,21 +8,19 @@ public class Block : MonoBehaviour {
 
     private float timeSinceMove = 0;
     private Grid gridInstance;
-    private bool activeBlock = true;
     private Vector2[] previousPos = new Vector2[4];
-
+    
     public float moveDelay = 0.5f;
+    public bool active = true;
 
-	// Use this for initialization
 	void Start () {
         gridInstance = GameObject.FindGameObjectWithTag("Grid").GetComponent<Grid>(); //TODO: Maybe go through manager
 
         SetPreviousPos();
 	}
 	
-	// Update is called once per frame
 	void Update () {
-        if (activeBlock)
+        if (active)
         {
             timeSinceMove += Time.deltaTime;
             if(timeSinceMove >= moveDelay)
@@ -31,13 +30,19 @@ public class Block : MonoBehaviour {
 
                 if (!NextPosAvailable(Vector2.down))
                 {
-                    activeBlock = false;
+                    active = false;
+
+                    foreach (Transform child in transform)
+                    {
+                        gridInstance.CheckLineFull(Mathf.RoundToInt(child.position.y));
+                    }
                 }
             }
         }
 	}
 
-    private void Move(Vector2 movementV)
+
+    public void Move(Vector2 movementV)
     {
         if (NextPosAvailable(movementV))
         {
@@ -48,15 +53,32 @@ public class Block : MonoBehaviour {
         }
     }
 
+    public void Rotate()
+    {
+        
+        transform.Rotate(new Vector3(0, 0, -90));
+        
+        UpdatePositionToGrid();
+        SetPreviousPos();
+    }
+
+    internal void Drop()
+    {
+        throw new NotImplementedException();
+    }
+
     private void UpdatePositionToGrid()
     {
         Transform childTransform;
+        foreach (Transform t in transform) // First remove all entries to avoid tiles deleting each others' entries on their previous positions
+        {
+            gridInstance.grid[Mathf.RoundToInt(previousPos[t.GetSiblingIndex()].x), Mathf.RoundToInt(previousPos[t.GetSiblingIndex()].y)] = null;
+        }
+
         for (int childI = 0; childI < previousPos.Length; childI++)
         {
-            gridInstance.grid[(int)previousPos[childI].x, (int)previousPos[childI].y] = null;
-
             childTransform = transform.GetChild(childI);
-            gridInstance.grid[(int)childTransform.position.x, (int)childTransform.position.y] = childTransform;
+            gridInstance.grid[Mathf.RoundToInt(childTransform.position.x), Mathf.RoundToInt(childTransform.position.y)] = childTransform;
         }
     }
 
@@ -68,10 +90,10 @@ public class Block : MonoBehaviour {
 
         foreach (Transform child in transform)
         {
-            newX = (int)(child.position.x + movementV.x);
-            newY = (int)(child.position.y + movementV.y);
+            newX = Mathf.RoundToInt(child.position.x + movementV.x);
+            newY = Mathf.RoundToInt(child.position.y + movementV.y);
 
-            if (newX > gridInstance.width || newX < 0 || newY > gridInstance.height || newY < 0) return false;
+            if (newX >= gridInstance.width || newX < 0 || newY >= gridInstance.height || newY < 0) return false;
 
             if (gridInstance.grid[newX, newY] != null && gridInstance.grid[newX, newY].parent != transform)
             {
