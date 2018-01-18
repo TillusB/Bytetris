@@ -75,23 +75,23 @@ public class InputManager : MonoBehaviour {
             return;
         }
 
-        switch (action)
+        switch ((int)action)
         {
             case 0:
                 break;
-            case InputAction.MoveLeft:
+            case 1:
                 currentBlock.Move(Vector2.left);
                 break;
-            case InputAction.MoveRight:
+            case 2:
                 currentBlock.Move(Vector2.right);
                 break;
-            case InputAction.Rotate:
+            case 3:
                 currentBlock.Rotate();
                 break;
-            case InputAction.Drop:
+            case 4:
                 currentBlock.Drop();
                 break;
-            case InputAction.SoftDrop:
+            case 5:
                 currentBlock.Move(Vector2.down);
                 break;
         }
