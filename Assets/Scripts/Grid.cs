@@ -86,6 +86,7 @@ public class Grid : MonoBehaviour {
         }
 
         DropLinesAbove(yCoordinate);
+        IncreaseSpeed();
     }
 
     private void DropLinesAbove(int yCoordinate) // Drop all lines above this height. Used after lines are cleared
@@ -104,6 +105,11 @@ public class Grid : MonoBehaviour {
                 }
             }
         }
+    }
+
+    private void IncreaseSpeed()
+    {
+        Block.moveDelay -= Block.moveDelay / 10;
     }
 
 }
