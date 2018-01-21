@@ -11,9 +11,11 @@ public class InputManager : MonoBehaviour {
         Rotate = 3,
         Drop = 4,
         SoftDrop = 5,
+        Pause = 6
     }
 
     private InputAction blockAction;
+    private GameStateManager managerInstance;
 
     private Block currentBlock;
     public Block CurrentBlock
@@ -30,6 +32,7 @@ public class InputManager : MonoBehaviour {
     }
 
     void Start () {
+        managerInstance = gameObject.GetComponent<GameStateManager>();
 	}
 	
 	void Update () {
@@ -56,6 +59,11 @@ public class InputManager : MonoBehaviour {
         if (Input.GetButtonDown("SoftDrop"))
         {
             blockAction = InputAction.SoftDrop;
+        }
+        else
+        if (Input.GetButtonDown("Pause"))
+        {
+            blockAction = InputAction.Pause;
         }
         else
         {
@@ -93,6 +101,9 @@ public class InputManager : MonoBehaviour {
                 break;
             case 5:
                 currentBlock.Move(Vector2.down);
+                break;
+            case 6:
+                managerInstance.ToggleGame();
                 break;
         }
     }
