@@ -6,12 +6,18 @@ using UnityEngine;
 public class Grid : MonoBehaviour {
     public int width = 10;
     public int height = 20;
+    public float difficultyIncrement = 0.01f; // Difficulty values are public for in-editor balancing
+    public float minDelay = 0.03f;
+
     public Transform[,] grid;
+    public Material gridMat;
 
 	// Use this for initialization
 	void Start () {
         grid = new Transform[width, height];
         ClearGrid();
+
+        ShowGrid();
 	}
 	
 	// Update is called once per frame
@@ -23,21 +29,45 @@ public class Grid : MonoBehaviour {
 
     }
 
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
+    /// <summary>
+    /// Spawn static cubes on each slot of the grid as a backdrop. A sprite would work too of course.
+    /// </summary>
+    private void ShowGrid()
     {
-        for (int y = 0; y < height; y++)
+        GameObject block;
+        for(int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                if (grid[x, y]) Gizmos.color = Color.red;
-                else Gizmos.color = Color.green;
-                Gizmos.DrawCube(new Vector3(x, y, 0), new Vector3(.5f, .5f, .5f));
+                block = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                block.transform.parent = transform;
+                block.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+                block.GetComponent<Renderer>().material = gridMat;
+                Destroy(block.GetComponent<Collider>());
+                block.isStatic = true;
+                block.transform.position = new Vector2(x, y);
             }
         }
     }
-#endif
 
+//#if UNITY_EDITOR //Only for debug purposes
+//    private void OnDrawGizmos()
+//    {
+//        for (int y = 0; y < height; y++)
+//        {
+//            for (int x = 0; x < width; x++)
+//            {
+//                if (grid[x, y]) Gizmos.color = Color.red;
+//                else Gizmos.color = Color.green;
+//                Gizmos.DrawCube(new Vector3(x, y, 0), new Vector3(.5f, .5f, .5f));
+//            }
+//        }
+//    }
+//#endif
+
+    /// <summary>
+    /// Set all grid slots to free. Destroy any objects that are on the slots
+    /// </summary>
     public void ClearGrid()
     {
         Transform block;
@@ -48,14 +78,17 @@ public class Grid : MonoBehaviour {
                 block = grid[x, y];
                 if (block != null)
                 {
-                    Destroy(block);
+                    Destroy(block.gameObject);
                     block = null;
                 }
             }
         }
     }
 
-    internal void CheckLineFull(int yCoordinate)
+    /// <summary>
+    /// Check if the line on the specified height is filled. If so go ahead and clear it.
+    /// </summary>
+    public void CheckLineFull(int yCoordinate)
     {
         bool isfull = true;
         for(int x = 0; x < width; x++)
@@ -72,6 +105,9 @@ public class Grid : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Clear line, free up the grid slots, drop all lines above and increase difficulty
+    /// </summary>
     private void ClearLine(int yCoordinate)
     {
         Transform clearBlock;
@@ -89,7 +125,10 @@ public class Grid : MonoBehaviour {
         IncreaseSpeed();
     }
 
-    private void DropLinesAbove(int yCoordinate) // Drop all lines above this height. Used after lines are cleared
+    /// <summary>
+    /// Drop all lines above this height. Used after lines are cleared
+    /// </summary>
+    private void DropLinesAbove(int yCoordinate)
     {
         Transform moveBlock;
         for (int y = yCoordinate; y < height; y++)
@@ -107,9 +146,17 @@ public class Grid : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Increse the speed of falling blocks incrementally.
+    /// If we hit the specified maximum difficulty (minimum delay) keep it there.
+    /// </summary>
     private void IncreaseSpeed()
     {
-        Block.moveDelay -= Block.moveDelay / 10;
+        Block.moveDelay -= difficultyIncrement;
+        if(Block.moveDelay <= minDelay)
+        {
+            Block.moveDelay = minDelay;
+        }
     }
 
 }

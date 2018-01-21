@@ -4,21 +4,43 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Generic block ( Tetromino )
+/// Moves down automatically and can be moved around via the InputManager.
+/// Methods are virtual for special blocks which inherit Block (e.g. O-Blocks which don't rotate or IBlocks which need some extra setup)
+/// </summary>
 public class Block : MonoBehaviour {
 
+    // Downward speed/delay and its original value. Static since we need this elsewhere and we don't want to search for one of the dynamically instantiated blocks every time.
     public static float moveDelay = 0.5f;
+    private static float standardMoveDelay = moveDelay;
+    public static float StandardMoveDelay
+    {
+        get
+        {
+            return standardMoveDelay; // No setter because this value is not supposed to change.
+        }
+    }
 
-    protected float timeSinceMove = 0;
+    private float timeSinceMove = 0;
     protected Grid gridInstance;
+    protected GameStateManager stateManagerInstance;
     protected Vector2[] previousPos = new Vector2[4];
     protected bool lastChance = false;
 
     public bool active = true;
 
-	protected virtual void Start () {
+
+    protected virtual void Start () {
         gridInstance = GameObject.FindGameObjectWithTag("Grid").GetComponent<Grid>();
+        stateManagerInstance = gridInstance.GetComponent<GameStateManager>();
 
         SetPreviousPos(); // Register this blocks' start position on the grid
+
+        if (!NextPosAvailable(Vector2.zero)) // If the block is immediately unable to move, the game ends.
+        {
+            stateManagerInstance.EndGame();
+        }
 	}
 
     /// <summary>
@@ -60,10 +82,6 @@ public class Block : MonoBehaviour {
                 }
             }
         }
-        //if (transform.childCount < 1)
-        //{
-        //    Destroy(gameObject);
-        //}
     }
 
     /// <summary>
@@ -87,7 +105,7 @@ public class Block : MonoBehaviour {
     /// Rotate the block by 90 degrees if there is space.
     /// Otherwise rotate it back to its previous orientation.
     /// 
-    /// TODO: allow rotation if the block is only obstructed horizontally -> push the block away from the obstacle instead.
+    /// TODO: allow rotation if the block is only obstructed horizontally -> push the block away from the obstacle instead without clipping into another.
     /// </summary>
     public virtual void Rotate()
     {
@@ -121,6 +139,9 @@ public class Block : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Tell the grid which slots are taken by the sub-blocks of this tetromino
+    /// </summary>
     protected virtual void UpdatePositionToGrid()
     {
         Transform childTransform;
@@ -136,6 +157,10 @@ public class Block : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Iterate through the child-transforms and check if their new positions will be available
+    /// </summary>
+    /// <param name="movementV">Vector of desired movement</param>
     protected virtual bool NextPosAvailable(Vector2 movementV)
     {
         bool available = true;
@@ -147,9 +172,9 @@ public class Block : MonoBehaviour {
             newX = Mathf.RoundToInt(child.position.x + movementV.x);
             newY = Mathf.RoundToInt(child.position.y + movementV.y);
 
-            if (newX >= gridInstance.width || newX < 0 || newY >= gridInstance.height || newY < 0) return false;
+            if (newX >= gridInstance.width || newX < 0 || newY >= gridInstance.height || newY < 0) return false; // cover edge cases
 
-            if (gridInstance.grid[newX, newY] != null && gridInstance.grid[newX, newY].parent != transform)
+            if (gridInstance.grid[newX, newY] != null && gridInstance.grid[newX, newY].parent != transform) // Second half of this statement verifies that an obstacle is not actually just a block of this tetromino - which will be moved too.
             {
                 available = false;
             }
@@ -158,6 +183,9 @@ public class Block : MonoBehaviour {
         return available;
     }
 
+    /// <summary>
+    /// Keep track of the previous position to clear from the grid it after we move.
+    /// </summary>
     protected virtual void SetPreviousPos()
     {
         foreach (Transform child in transform)

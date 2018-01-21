@@ -1,84 +1,56 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
+/// <summary>
+/// The Spawner class Instantiates new blocks whenever the current one is set down.
+/// </summary>
 public class Spawner : MonoBehaviour {
     public Block[] availableBlocks;
 
     private Grid gridInstance;
     private Block nextBlock;
-    private Vector2 spawnPoint;
-    private InputManager input;
+    private Block holdBlock;
+    private InputManager inputInstance;
+
+    public Text nextUpText;
+    public Vector2 spawnPoint;
 
     private Block currentBlock;
-    public Block CurrentBlock
+    public Block CurrentBlock // Readonly in case we have to get the CurrentBlock from outside this class
     {
         get { return currentBlock; }
-        private set {
+        private set
+        {
             currentBlock = value;
-            input.CurrentBlock = currentBlock;
         }
     }
 
 	void Start () {
         gridInstance = GetComponent<Grid>();
-        input = GetComponent<InputManager>();
+        inputInstance = GetComponent<InputManager>();
 
-        spawnPoint = new Vector2(Mathf.RoundToInt(gridInstance.width / 2), gridInstance.height-3);
+        spawnPoint = new Vector2(Mathf.RoundToInt(gridInstance.width / 2), gridInstance.height-3); // Spawnpoint low enough for any block to spawn within the grids' bounds
 
         nextBlock = availableBlocks[Random.Range(0, availableBlocks.Length)];
     }
 
-    void FixedUpdate () {
+    void FixedUpdate () { //we don't need to check on our block every frame
 		if(currentBlock == null || !currentBlock.active)
         {
             CurrentBlock = Instantiate(nextBlock, spawnPoint, Quaternion.identity);
-            nextBlock = availableBlocks[Random.Range(0, availableBlocks.Length)];
+            GetNextBlock(); 
+            
         }
-	}
-    private void Update()
+    }
+
+    /// <summary>
+    /// Next block is picked randomly and then displayed in the UI
+    /// </summary>
+    private void GetNextBlock()
     {
-        if (Input.GetKey(KeyCode.F1))
-        {
-            nextBlock = availableBlocks[0];
-            Destroy(currentBlock.gameObject);
-            CurrentBlock = Instantiate(nextBlock, spawnPoint, Quaternion.identity);
-        }
-        if (Input.GetKey(KeyCode.F2))
-        {
-            nextBlock = availableBlocks[1];
-            Destroy(currentBlock.gameObject);
-            CurrentBlock = Instantiate(nextBlock, spawnPoint, Quaternion.identity);
-        }
-        if (Input.GetKey(KeyCode.F3))
-        {
-            nextBlock = availableBlocks[2];
-            Destroy(currentBlock.gameObject);
-            CurrentBlock = Instantiate(nextBlock, spawnPoint, Quaternion.identity);
-        }
-        if (Input.GetKey(KeyCode.F4))
-        {
-            nextBlock = availableBlocks[3];
-            Destroy(currentBlock.gameObject);
-            CurrentBlock = Instantiate(nextBlock, spawnPoint, Quaternion.identity);
-        }
-        if (Input.GetKey(KeyCode.F5))
-        {
-            nextBlock = availableBlocks[4];
-            Destroy(currentBlock.gameObject);
-            CurrentBlock = Instantiate(nextBlock, spawnPoint, Quaternion.identity);
-        }
-        if (Input.GetKey(KeyCode.F6))
-        {
-            nextBlock = availableBlocks[5];
-            Destroy(currentBlock.gameObject);
-            CurrentBlock = Instantiate(nextBlock, spawnPoint, Quaternion.identity);
-        }
-        if (Input.GetKey(KeyCode.F7))
-        {
-            nextBlock = availableBlocks[6];
-            Destroy(currentBlock.gameObject);
-            CurrentBlock = Instantiate(nextBlock, spawnPoint, Quaternion.identity);
-        }
+        nextBlock = availableBlocks[Random.Range(0, availableBlocks.Length)];
+        nextUpText.text = nextBlock.name;
     }
 }

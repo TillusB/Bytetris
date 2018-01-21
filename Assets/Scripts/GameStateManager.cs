@@ -19,11 +19,13 @@ public class GameStateManager : MonoBehaviour {
 
     public Button PlayPauseButton;
 
-    private Spawner spawner;
-    private InputManager input;
+    private Spawner spawnerInstance;
+    private InputManager inputInstance;
+    private Grid gridInstance;
     private Text ButtonText;
-    private GameState state = GameState.None;
+
     private float originalMovedelay = Block.moveDelay;
+    private GameState state = GameState.None;
 
     public GameState State
     {
@@ -33,11 +35,12 @@ public class GameStateManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        input = gameObject.GetComponent<InputManager>();
-        spawner = gameObject.GetComponent<Spawner>();
+        gridInstance = gameObject.GetComponent<Grid>();
+        inputInstance = gameObject.GetComponent<InputManager>();
+        spawnerInstance = gameObject.GetComponent<Spawner>();
 
-        PlayPauseButton.onClick.AddListener(ToggleGame);
-        ButtonText = PlayPauseButton.GetComponentInChildren<Text>();
+        PlayPauseButton.onClick.AddListener(ToggleGame); // The UI-Button has multiple purposes depending on the game state
+        ButtonText = PlayPauseButton.GetComponentInChildren<Text>(); // The text should always reflect its current purpose
 	}
 
     /// <summary>
@@ -52,8 +55,8 @@ public class GameStateManager : MonoBehaviour {
             return;
         }
 
-        spawner.enabled = false;
-        input.enabled = false;
+        spawnerInstance.enabled = false;
+        inputInstance.enabled = false;
         originalMovedelay = Block.moveDelay;
         Block.moveDelay = Mathf.Infinity;
 
@@ -72,14 +75,39 @@ public class GameStateManager : MonoBehaviour {
             return;
         }
 
-        input.enabled = true;
-        spawner.enabled = true;
+        inputInstance.enabled = true;
+        spawnerInstance.enabled = true;
         Block.moveDelay = originalMovedelay;
 
         ButtonText.text = "Pause";
         state = GameState.Play;
     }
+    /// <summary>
+    /// Clear the grid and reset the MovementDelay to default after the game ended. Resume play.
+    /// </summary>
+    public void StartGame()
+    {
+        gridInstance.ClearGrid();
+        Block.moveDelay = Block.StandardMoveDelay;
+        UnpauseGame();
+    }
 
+    /// <summary>
+    /// stop spawning or moving blocks
+    /// </summary>
+    public void EndGame()
+    {
+        inputInstance.enabled = false;
+        spawnerInstance.enabled = false;
+        Block.moveDelay = Mathf.Infinity;
+
+        ButtonText.text = "Restart";
+        state = GameState.End;
+    }
+
+    /// <summary>
+    /// Toggle the game depending on current state. Restart if the game ended.
+    /// </summary>
     public void ToggleGame()
     {
         if(state == GameState.Play)
@@ -91,7 +119,11 @@ public class GameStateManager : MonoBehaviour {
         }else if(state == GameState.None)
         {
             UnpauseGame();
+        }else if(state == GameState.End)
+        {
+            StartGame();
         }
     }
+
 
 }

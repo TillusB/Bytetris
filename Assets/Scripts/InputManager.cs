@@ -6,8 +6,8 @@ public class InputManager : MonoBehaviour {
     enum InputAction
     {
         None = 0,
-        MoveLeft = 1,
-        MoveRight = 2,
+        Left = 1,
+        Right = 2,
         Rotate = 3,
         Drop = 4,
         SoftDrop = 5,
@@ -15,35 +15,29 @@ public class InputManager : MonoBehaviour {
     }
 
     private InputAction blockAction;
+    private IEnumerator ActionHoldRoutine;
     private GameStateManager managerInstance;
+    private Spawner spawnerInstance; // Instance of spawner to get the latest block from
 
-    private Block currentBlock;
-    public Block CurrentBlock
-    {
-        get
-        {
-            return currentBlock;
-        }
-
-        set
-        {
-            currentBlock = value;
-        }
-    }
+    public float actionDelay = .2f; // Delay on a repeating action when holding down a key
 
     void Start () {
         managerInstance = gameObject.GetComponent<GameStateManager>();
+        spawnerInstance = gameObject.GetComponent<Spawner>();
 	}
 	
+    /// <summary>
+    /// Get Inputs and decide action accordingly
+    /// </summary>
 	void Update () {
         if (Input.GetButtonDown("Left"))
         {
-            blockAction = InputAction.MoveLeft;
+            blockAction = InputAction.Left;
         }
         else
         if (Input.GetButtonDown("Right"))
         {
-            blockAction = InputAction.MoveRight;
+            blockAction = InputAction.Right;
         }
         else
         if (Input.GetButtonDown("Rotate"))
@@ -65,20 +59,17 @@ public class InputManager : MonoBehaviour {
         {
             blockAction = InputAction.Pause;
         }
-        else
-        {
-            blockAction = InputAction.None;
-        }
 
         if (blockAction != InputAction.None)
         {
             PerformBlockAction(blockAction);
+            blockAction = InputAction.None;
         }
     }
 
     private void PerformBlockAction(InputAction action)
     {
-        if (!currentBlock)
+        if (!spawnerInstance.CurrentBlock)
         {
             return;
         }
@@ -88,23 +79,40 @@ public class InputManager : MonoBehaviour {
             case 0:
                 break;
             case 1:
-                currentBlock.Move(Vector2.left);
+                spawnerInstance.CurrentBlock.Move(Vector2.left);
                 break;
             case 2:
-                currentBlock.Move(Vector2.right);
+                spawnerInstance.CurrentBlock.Move(Vector2.right);
                 break;
             case 3:
-                currentBlock.Rotate();
+                spawnerInstance.CurrentBlock.Rotate();
                 break;
             case 4:
-                currentBlock.Drop();
+                spawnerInstance.CurrentBlock.Drop();
                 break;
             case 5:
-                currentBlock.Move(Vector2.down);
+                spawnerInstance.CurrentBlock.Move(Vector2.down);
                 break;
             case 6:
                 managerInstance.ToggleGame();
                 break;
+        }
+
+        // Stop previous repeating action and check if the new key is being held down
+        if (ActionHoldRoutine != null)
+        {
+            StopCoroutine(ActionHoldRoutine);
+        }
+        ActionHoldRoutine = HoldKey(action);
+        StartCoroutine(ActionHoldRoutine);
+    }
+
+    private IEnumerator HoldKey(InputAction action)
+    {
+        while (Input.GetButton(action.ToString()))
+        {
+            blockAction = action;
+            yield return new WaitForSeconds(actionDelay);
         }
     }
 }
