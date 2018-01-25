@@ -51,6 +51,6 @@ public class Spawner : MonoBehaviour {
     private void GetNextBlock()
     {
         nextBlock = availableBlocks[Random.Range(0, availableBlocks.Length)];
-        nextUpText.text = nextBlock.name;
+        nextUpText.text = "Next block: " + nextBlock.name;
     }
 }

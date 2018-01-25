@@ -15,14 +15,14 @@ Platform assembly: D:\Baktillus\Dokumente\GitHub\Bytetris\Build\Tetris_Data\Mana
 Loading D:\Baktillus\Dokumente\GitHub\Bytetris\Build\Tetris_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
 Platform assembly: D:\Baktillus\Dokumente\GitHub\Bytetris\Build\Tetris_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
 Loading D:\Baktillus\Dokumente\GitHub\Bytetris\Build\Tetris_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
-- Completed reload, in  0.089 seconds
+- Completed reload, in  0.014 seconds
 Platform assembly: D:\Baktillus\Dokumente\GitHub\Bytetris\Build\Tetris_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: D:\Baktillus\Dokumente\GitHub\Bytetris\Build\Tetris_Data\Managed\System.dll (this message is harmless)
 desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 1.137241 ms
+UnloadTime: 0.814380 ms
 Setting up 2 worker threads for Enlighten.
-  Thread -> id: 48d8 -> priority: 1 
-  Thread -> id: 5904 -> priority: 1 
+  Thread -> id: 524 -> priority: 1 
+  Thread -> id: 678 -> priority: 1 
